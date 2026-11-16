@@ -1,0 +1,12 @@
+{
+  "name": "toxic-music-engine",
+  "version": "0.1.0",
+  "description": "Motor de automação do ecossistema Toxic (roda no PC do usuário, sem servidor).",
+  "type": "module",
+  "private": true,
+  "engines": { "node": ">=20" },
+  "scripts": {
+    "test": "node --test",
+    "motor": "node src/cli.js"
+  }
+}
