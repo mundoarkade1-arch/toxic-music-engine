@@ -5,13 +5,14 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { bibliotecaDeFaixas, lerPasta, acharDuplicadas } from '../src/library.js';
 import { playlistsPorArtista } from '../src/playlists.js';
+import { lerNomeDeArquivo } from '../src/normalize.js';
 
 test('lê pasta com subpastas, só áudio, e não altera nada', async () => {
   const raiz = await mkdtemp(join(tmpdir(), 'toxic-'));
   await mkdir(join(raiz, 'Sertanejo', 'Antigas'), { recursive: true });
-  await writeFile(join(raiz, 'A - Um.mp3'), 'x');
-  await writeFile(join(raiz, 'Sertanejo', 'B - Dois.FLAC'), 'x');
-  await writeFile(join(raiz, 'Sertanejo', 'Antigas', 'C - Três.m4a'), 'x');
+  await writeFile(join(raiz, 'Um - A.mp3'), 'x');
+  await writeFile(join(raiz, 'Sertanejo', 'Dois - B.FLAC'), 'x');
+  await writeFile(join(raiz, 'Sertanejo', 'Antigas', 'Três - C.m4a'), 'x');
   await writeFile(join(raiz, 'capa.jpg'), 'x');
   const antes = await readdir(raiz);
   const bib = await lerPasta(raiz);
@@ -40,9 +41,9 @@ test('versões diferentes não são repetidas', () => {
   assert.equal(acharDuplicadas(bib).length, 0);
 });
 
-test('playlist por artista só com 5 músicas ou mais, no formato do site', () => {
+test('playlist por artista só com 10 músicas ou mais, no formato do site', () => {
   const faixas = [];
-  for (let i = 0; i < 5; i++) faixas.push({ id: 'id' + i, fn: `a${i}.mp3`, p: 'p', t: 'Musica ' + i, a: 'Nick Romero' });
+  for (let i = 0; i < 10; i++) faixas.push({ id: 'id' + i, fn: `a${i}.mp3`, p: 'p', t: 'Musica ' + i, a: 'Nick Romero' });
   faixas.push({ fn: 'z.mp3', t: 'Sozinha', a: 'Fulano' });
   const pl = playlistsPorArtista(bibliotecaDeFaixas(faixas));
   assert.equal(pl.length, 1);
@@ -50,4 +51,17 @@ test('playlist por artista só com 5 músicas ou mais, no formato do site', () =
   assert.deepEqual(pl[0].regra, { tipo: 'artista', nome: 'Nick Romero' });
   assert.equal(pl[0].faixas[0].id, 'id0');
   assert.deepEqual(Object.keys(pl[0].faixas[0]), ['id', 'fn', 'p', 't', 'a']);
+});
+
+test('nomes reais do Drive: cantores certos e playlist por cantor', () => {
+  const nomes = [
+    ...Array.from({ length: 10 }, (_, i) => `Música ${i} - Linkin Park.mp3`),
+    ...Array.from({ length: 10 }, (_, i) => `Canção ${i} - Ao Vivo - Henrique & Juliano.mp3`),
+    ...Array.from({ length: 4 }, (_, i) => `Faixa ${i} - Pitty.mp3`),
+    'Tate McRae - Housewife (Official Video)-DPEodkHzH-s.mp3',
+  ];
+  const bib = bibliotecaDeFaixas(nomes.map((fn) => ({ fn, p: '', ...lerNomeDeArquivo(fn) })));
+  const pl = playlistsPorArtista(bib);
+  assert.deepEqual(pl.map((x) => x.nome), ['Henrique & Juliano', 'Linkin Park']);
+  assert.equal(bib.faixas.at(-1).a, 'Tate McRae');
 });

@@ -1,7 +1,7 @@
 // Gera playlists no formato toxic-playlists v2 (o mesmo do site e do app). Escrito em playlists-motor.json.
 import { normalizarArtista } from './normalize.js';
 
-export const MIN_FAIXAS_ARTISTA = 5; // igual ao site: uma playlist por cantor com 5 músicas ou mais
+export const MIN_FAIXAS_ARTISTA = 10; // uma playlist por cantor com 10 músicas ou mais (o site usa 5; aqui é mais cauteloso para não criar playlists demais no app)
 
 function faixaOut(f) {
   const o = {};

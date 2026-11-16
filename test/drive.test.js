@@ -50,13 +50,13 @@ test('lê biblioteca: caminho de pastas, só áudio, artista e título do nome',
   const d = drivefalso();
   d.arquivos.push({ id: 'F1', name: 'Músicas do Site', mimeType: 'application/vnd.google-apps.folder', parents: ['root'] });
   d.arquivos.push({ id: 'F2', name: 'Sertanejo', mimeType: 'application/vnd.google-apps.folder', parents: ['F1'] });
-  d.arquivos.push({ id: 'm1', name: 'Henrique e Juliano - Recairei.mp3', mimeType: 'audio/mpeg', parents: ['F2'] });
-  d.arquivos.push({ id: 'm2', name: 'Fulano - Solta.mp3', mimeType: 'application/octet-stream', parents: ['F1'] });
+  d.arquivos.push({ id: 'm1', name: 'Recairei - Henrique e Juliano.mp3', mimeType: 'audio/mpeg', parents: ['F2'] });
+  d.arquivos.push({ id: 'm2', name: 'Solta - Fulano.mp3', mimeType: 'application/octet-stream', parents: ['F1'] });
   d.arquivos.push({ id: 'x1', name: 'planilha.xlsx', mimeType: 'application/octet-stream', parents: ['F1'] });
   const bib = await cliente(d).lerBiblioteca();
   assert.equal(bib.faixas.length, 2);
   const r = bib.faixas.find((f) => f.id === 'm1');
-  assert.deepEqual([r.p, r.a, r.t, r.fn], ['Músicas do Site/Sertanejo', 'Henrique e Juliano', 'Recairei', 'Henrique e Juliano - Recairei.mp3']);
+  assert.deepEqual([r.p, r.a, r.t, r.fn], ['Músicas do Site/Sertanejo', 'Henrique e Juliano', 'Recairei', 'Recairei - Henrique e Juliano.mp3']);
   assert.equal(bib.faixas.find((f) => f.id === 'm2').p, 'Músicas do Site');
 });
 

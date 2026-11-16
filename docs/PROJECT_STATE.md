@@ -29,7 +29,8 @@ Atualizado: 2026-11-16 (etapa 3, código). Legenda: [E] escrito e testado em tes
 `biblioteca.json`, `duplicadas.json`, `pendentes-por-lista.json`. Se um dia forem para o Drive, o contrato (`CONTRATO_MOTOR.md` no repositório do Toxic Player) precisa ser atualizado antes.
 
 ## Limites conhecidos
-- A biblioteca vem só do NOME do arquivo ("Artista - Título.mp3"). Arquivos sem esse padrão ficam sem artista.
+- A biblioteca vem só do NOME do arquivo. Dois jeitos são lidos: com código do YouTube no fim = "Artista - Título"; sem código = "Título - Artista" (o ÚLTIMO pedaço é o cantor; pedaços do meio, como "Ao Vivo", ficam no título). Arquivos sem " - " ficam sem artista e não entram em playlist por cantor. Casos raros como "YOUR LOVE - THE OUTFIELD (karaoke)-código" saem trocados.
+- Playlist por cantor: mínimo de 10 músicas (MIN_FAIXAS_ARTISTA em src/playlists.js). O site usa 5.
 - Sem gênero nem capa (isso vem das tags, que o motor ainda não lê).
 - Duas músicas só são "repetidas" se artista principal e título (sem participação) forem iguais.
 
@@ -43,3 +44,4 @@ Validar a etapa 3 no PC do usuário: instalar o Node, criar o cliente do Google,
 ## Registro
 - 2026-11-16: criado o núcleo (etapa 2). Corrigidos durante os testes: caminhos padrão ignoravam `--dados`; a fila crescia a cada "planejar" (agora tira as tarefas feitas).
 - 2026-11-16: etapa 3 escrita (login Google, cliente Drive, envio, .bat). Teste que falhou durante o desenvolvimento era erro do próprio teste (espaço como "+" na busca), corrigido.
+- 2026-11-16 (sessão 2): `playlists-motor.json` saiu VAZIO no PC do usuário. Causa achada olhando `dados/biblioteca.json` real: quase todos os arquivos são "Título - Artista" e o leitor assumia "Artista - Título", então cada música virava um "cantor" com 1 faixa. Também fazia a comparação com o Top 200 falhar (3361 "faltam" e 0 repetidas eram falsos). Corrigido `lerNomeDeArquivo` (src/normalize.js), mínimo por cantor subiu para 10, testes ajustados e novos (52 testes passam no Node 22). AINDA NÃO validado no PC do usuário: falta rodar 2-atualizar-tudo.bat de novo.
