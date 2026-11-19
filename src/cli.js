@@ -3,7 +3,7 @@
 import { resolve, join } from 'node:path';
 import { lerJson, gravarJson } from './store.js';
 import * as Q from './queue.js';
-import { lerPasta } from './library.js';
+import { lerPasta, relatorioNomesEstranhos } from './library.js';
 import { writeFile, mkdir } from 'node:fs/promises';
 import { lerCharts, baixarCharts } from './charts.js';
 import { entrar, desconectar, criarProvedorDeToken } from './google-auth.js';
@@ -24,6 +24,12 @@ const cfg = {
   biblioteca: resolve(opcao('biblioteca', join(dados, 'biblioteca.json'))),
 };
 
+async function salvarNomesEstranhos(bib) {
+  const arq = join(dados, 'nomes-estranhos.txt');
+  await writeFile(arq, relatorioNomesEstranhos(bib), 'utf8');
+  console.log(`Fiz uma lista de nomes esquisitos para a gente melhorar a leitura: ${arq}`);
+}
+
 async function main() {
   if (cmd === 'ler-pasta') {
     const pasta = args[1];
@@ -31,6 +37,7 @@ async function main() {
     const bib = await lerPasta(resolve(pasta));
     await gravarJson(cfg.biblioteca, bib);
     console.log(`Li ${bib.faixas.length} músicas. Salvei em ${cfg.biblioteca}`);
+    await salvarNomesEstranhos(bib);
   } else if (cmd === 'planejar') {
     const charts = await lerCharts(cfg.charts);
     const arq = resolve(dados, 'fila.json');
@@ -66,6 +73,7 @@ async function main() {
     const bib = await drive.lerBiblioteca();
     await gravarJson(cfg.biblioteca, bib);
     console.log(`Li ${bib.faixas.length} músicas no Drive. Salvei em ${cfg.biblioteca}`);
+    await salvarNomesEstranhos(bib);
   } else if (cmd === 'enviar-drive') {
     const drive = new DriveClient({ token: criarProvedorDeToken(dados) });
     const enviados = await enviarParaDrive(drive, dados);
