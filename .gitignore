@@ -1,0 +1,5 @@
+# Segredos e dados do PC do usuário. Nunca vão para o GitHub.
+dados/
+node_modules/
+*.log
+*.tmp
