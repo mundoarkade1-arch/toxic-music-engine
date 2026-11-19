@@ -1,12 +1,12 @@
 # Estado do projeto — Toxic Music Engine
-Atualizado: 2026-11-16 (etapa 3, código). Legenda: [E] escrito e testado em testes automáticos · [P] planejado · [?] não comprovado.
+Atualizado: 2026-11-18 (sessão 3: primeira execução real no PC do usuário). Legenda: [E] escrito e testado em testes automáticos · [V] validado no PC do usuário · [P] planejado · [?] não comprovado.
 
 ## Verificação (leia primeiro)
-- Etapa 2 (28 testes): Actions VERDE no GitHub, com Node 20 (usuário confirmou).
-- Etapa 3 (código novo): 49 testes passam no ambiente de desenvolvimento (Node 22). Actions da etapa 3: ainda NÃO confirmado.
-- Testado de ponta a ponta com o `charts.js` real do site e uma pasta de teste com 39 arquivos falsos. NÃO testado com a pasta de músicas real do usuário.
-- A ligação com o Google Drive foi testada SÓ com um Drive de mentira e um Google de mentira. Nunca falou com o Google de verdade: falta configurar o cliente (`docs/GOOGLE_SETUP.md`) e testar no PC do usuário.
-- Site e app ainda não leem nada do motor.
+- Testes automáticos: 52 passam no ambiente de desenvolvimento (Node 22). Actions (Node 20) das etapas 3 e da sessão 3: NÃO confirmado.
+- [V] Primeira execução real no PC do usuário (2026-11-18): login do Google OK, 1132 músicas lidas do Drive real, 54 tarefas feitas e 0 com erro, 4 arquivos enviados para a pasta `Toxic Engine` do Drive (`engine-status.json`, `fila.json`, `pendentes.json`, `playlists-motor.json`; usuário viu os 4 no Drive).
+- [V] `playlists-motor.json` saiu com conteúdo: 4 playlists (Linkin Park 26 faixas, Henrique & Juliano 17, David Guetta 12, Nickelback 10). Artista e título estão nos campos certos nos dois formatos de nome. Resultado da rodada: 3266 músicas do Top 200 faltam na biblioteca, 12 repetidas.
+- [?] Site e app ainda não leem nada do motor (etapas 4 e 5).
+- [?] O "tentar de novo" ao salvar arquivos (`src/store.js`) foi testado por mim num script de desenvolvimento, mas NÃO tem teste automático no repositório e NÃO foi comprovado no PC (a última rodada passou sem precisar dele).
 
 ## Feito
 - [E] `src/normalize.js`: chave artista|título (sem acento, sem maiúscula, "&" = "e", tira "feat/with" mas mantém "Ao Vivo/Remix").
@@ -15,33 +15,14 @@ Atualizado: 2026-11-16 (etapa 3, código). Legenda: [E] escrito e testado em tes
 - [E] `src/charts.js`, `src/pendentes.js`: compara Top 200 com a biblioteca.
 - [E] `src/playlists.js`: playlists por cantor, formato `toxic-playlists` v2, arquivo `playlists-motor.json`.
 - [E] `src/status.js`, `src/runner.js`, `src/cli.js`: status, execução e comandos.
+- [E+V] `src/google-auth.js`: login por porta local + PKCE, token de renovação em `dados/google-token.json` (só neste PC, fora do GitHub), renovação automática, revogar/desconectar. Login real funcionou.
+- [E+V] `src/drive.js`: lê a biblioteca do Drive real (1132 músicas), acha/cria pasta, cria ou atualiza JSON sem duplicar.
+- [E+V] `src/enviar.js`: envia os 4 arquivos para a pasta `Toxic Engine`.
+- [E+V] `baixar-charts`: baixa o `charts.js` do site (repositório do site é público; funcionou).
+- [V] Arquivos `.bat` (dois cliques): `1-entrar-google.bat` e `2-atualizar-tudo.bat` funcionaram no Windows do usuário.
+- [E] `src/store.js` (sessão 3): ao salvar, se o Windows responder EPERM/EBUSY/EACCES ("arquivo ocupado"), espera e tenta de novo até 8 vezes (cerca de 7 s no total); erro de outro tipo não repete; se não conseguir, apaga o `.tmp` e mostra mensagem clara. Commit feito pelo usuário no GitHub e arquivo copiado para o PC; falta confirmar que o Actions está verde.
+- [V] `.gitignore` criado na sessão 3 (não existia, apesar do README dizer que sim). Ignora `dados/`, `node_modules/`, `*.log`, `*.tmp`. O repositório é PÚBLICO.
 
-## Etapa 3 — Google Drive (código escrito, NÃO validado com o Google real)
-- [E, só com mock] `src/google-auth.js`: login por porta local + PKCE, token de renovação em `dados/google-token.json` (só neste PC, fora do GitHub), renovação automática, revogar/desconectar. Mensagens de erro nunca repetem token nem segredo.
-- [E, só com mock] `src/drive.js`: lista com páginas, espera e repete em 429/5xx, lê biblioteca (pastas + só áudio), acha/cria pasta, cria ou atualiza JSON pelo nome sem duplicar.
-- [E] `src/enviar.js`: envia `engine-status.json`, `fila.json`, `pendentes.json`, `playlists-motor.json` para a pasta `Toxic Engine`.
-- [E] `baixar-charts`: baixa o `charts.js` do site (raw.githubusercontent.com; só funciona se o repositório do site for público) e confere antes de gravar.
-- [E] Arquivos `.bat` para o Windows (dois cliques), porque o usuário não quer usar terminal.
-- Decisão: `playlists-motor.json` fica na pasta `Toxic Engine`, não em `Toxic Playlists`: com o escopo `drive.file` o motor só escreve em pastas que ele mesmo criou.
-- Risco aceito e registrado: o token de renovação fica em arquivo no PC do usuário (necessário para rodar sem pedir login toda vez). Com a tela de consentimento em modo "Teste" o Google costuma cancelá-lo em 7 dias.
-
-## Arquivos locais do motor que NÃO estão no contrato (só no PC, dentro de `dados/`)
-`biblioteca.json`, `duplicadas.json`, `pendentes-por-lista.json`. Se um dia forem para o Drive, o contrato (`CONTRATO_MOTOR.md` no repositório do Toxic Player) precisa ser atualizado antes.
-
-## Limites conhecidos
-- A biblioteca vem só do NOME do arquivo. Dois jeitos são lidos: com código do YouTube no fim = "Artista - Título"; sem código = "Título - Artista" (o ÚLTIMO pedaço é o cantor; pedaços do meio, como "Ao Vivo", ficam no título). Arquivos sem " - " ficam sem artista e não entram em playlist por cantor. Casos raros como "YOUR LOVE - THE OUTFIELD (karaoke)-código" saem trocados.
-- Playlist por cantor: mínimo de 10 músicas (MIN_FAIXAS_ARTISTA em src/playlists.js). O site usa 5.
-- Sem gênero nem capa (isso vem das tags, que o motor ainda não lê).
-- Duas músicas só são "repetidas" se artista principal e título (sem participação) forem iguais.
-
-## Decisões em aberto
-1. Usuário aceita instalar o Node.js no PC? (necessário para rodar o motor)
-2. Criar o cliente do Google tipo "App para computador" (`docs/GOOGLE_SETUP.md`).
-
-## Próxima etapa recomendada
-Validar a etapa 3 no PC do usuário: instalar o Node, criar o cliente do Google, rodar `1-entrar-google.bat` e `2-atualizar-tudo.bat`, conferir a pasta `Toxic Engine` no Drive. Depois: etapa 4 (aba do site que mostra o status).
-
-## Registro
-- 2026-11-16: criado o núcleo (etapa 2). Corrigidos durante os testes: caminhos padrão ignoravam `--dados`; a fila crescia a cada "planejar" (agora tira as tarefas feitas).
-- 2026-11-16: etapa 3 escrita (login Google, cliente Drive, envio, .bat). Teste que falhou durante o desenvolvimento era erro do próprio teste (espaço como "+" na busca), corrigido.
-- 2026-11-16 (sessão 2): `playlists-motor.json` saiu VAZIO no PC do usuário. Causa achada olhando `dados/biblioteca.json` real: quase todos os arquivos são "Título - Artista" e o leitor assumia "Artista - Título", então cada música virava um "cantor" com 1 faixa. Também fazia a comparação com o Top 200 falhar (3361 "faltam" e 0 repetidas eram falsos). Corrigido `lerNomeDeArquivo` (src/normalize.js), mínimo por cantor subiu para 10, testes ajustados e novos (52 testes passam no Node 22). AINDA NÃO validado no PC do usuário: falta rodar 2-atualizar-tudo.bat de novo.
+## Decisões tomadas
+- `playlists-motor.json` fica na pasta `Toxic Engine`, não em `Toxic Playlists`: com o escopo `drive.file` o motor só escreve em pastas que ele mesmo criou.
+- A pasta do motor no PC do usuário agora fica FORA do OneDrive: `C:\Motores do toxic\toxic-music-engine-main`. Motivos: (1) o OneDrive segurava arquivos e causou `EPERM ... rename` em `pendentes.json.tmp` (1 tarefa em 54, nas duas primeiras rodadas, tarefas diferentes: rock-2010 e eletronica-2010); (2) o OneDrive sincronizaria `dados/google-cliente.json` e `dados/google-token.json` (segredos) para a nuvem da Microsoft; (3) a execução automática (etapa 5) fica mais frágil
