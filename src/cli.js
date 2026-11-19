@@ -42,8 +42,12 @@ async function main() {
     await gravarJson(arq, fila);
     console.log(`Fila com ${fila.tarefas.filter((t) => t.estado === 'pendente').length} tarefas pendentes.`);
   } else if (cmd === 'executar') {
-    const r = await executar(cfg, { aoTerminarTarefa: (t) => console.log(`${t.estado.padEnd(8)} ${t.tipo} ${t.alvo ?? ''}`) });
+    const r = await executar(cfg, { aoTerminarTarefa: (t) => {
+      console.log(`${t.estado.padEnd(8)} ${t.tipo} ${t.alvo ?? ''}`);
+      if (t.estado !== 'feita' && t.ultimoErro) console.log(`         MOTIVO: ${t.ultimoErro}`);
+    } });
     console.log(`Pronto. Feitas: ${r.feitas}. Com erro: ${r.falhas}.`);
+    if (r.falhas) console.log(`ATENÇÃO: ${r.falhas} tarefa(s) falharam. O motivo está escrito acima. Dê dois cliques em 2-atualizar-tudo.bat de novo para tentar outra vez.`);
     console.log(`Faltam na biblioteca: ${r.status.contagem.pendentes}. Repetidas: ${r.status.contagem.duplicadas}.`);
   } else if (cmd === 'baixar-charts') {
     const texto = await baixarCharts(opcao('url', undefined));
